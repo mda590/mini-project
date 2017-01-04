@@ -343,11 +343,8 @@ def build_template(keyPair, instanceType):
     print 'CloudFormation template build is completed.'
     return mini_template
 
-def key_pair(key, secretKey, region):
-    ''' Choose the Key Pair to use when building the EC2 instance.
-        Can be either an existing Key Pair, or a new one.
-        If a new Key Pair is generated, the PEM file will be saved.
-    '''
+def key_pair(key, secretKey, region, keyPair):
+    ''' Validate the EC2 key pair entered exists.'''
     print
     print '################ 1. Key Pair Validation Phase ################'
     ec2 = boto3.client(
@@ -357,47 +354,16 @@ def key_pair(key, secretKey, region):
         aws_secret_access_key=secretKey
     )
     
-    # First, describe all existing key pairs
+    # Get all keypairs which exist in the selected region
     key_pairs = ec2.describe_key_pairs()
 
-    # Print list of existing key pairs
-    print 'The following key pairs currently exist in the ' + region + ' region.'
-    for key in key_pairs['KeyPairs']:
-        print key['KeyName']
-
-    print 'Please enter the name of the key pair you would like to use for this new EC2 instance.'
-    print 'If you would prefer to create a new key pair, please type: new'
-
-    # Prompt for a key pair name, or whether to create a new key pair
-    keyChoice = raw_input('Enter the key pair name or type new to create a new key pair: ')
-
-    # If the key pair choice is new
-    if(keyChoice == 'new'):
-        # Create a new key pair
-        response = ec2.create_key_pair(
-            KeyName=stack_name
-        )
-
-        keyMaterial = response['KeyMaterial']
-
-        # Save the key pair pem file to the directory where this script is run
-        pemFile = open(stack_name + '.pem', 'w+')
-        pemFile.write(keyMaterial)
-        pemFile.close()
-
-        print 'A new key pair was created named: ' + stack_name + '.'
-        print 'The private key was saved into the same directory as this script.'
-        print 'Please move the private key file to a secure location at the completion of this exercise.'
-
-        # Return the new key pair name (also the stack name)
-        return stack_name
-    
-    # If the key pair choice exists, return that key pair name
+    if(keyPair in json.dumps(key_pairs['KeyPairs'])):
+        print keyPair + ' key pair was found!'
+        return keyPair
     else:
-        if(keyChoice in json.dumps(key_pairs['KeyPairs'])):
-            return keyChoice
-        else:
-            print 'The key pair name you entered was not found. Please try again.'
+        print 'The key pair name you entered was not found.'
+        print 'Please enter a valid key pair name and run the script again.'
+        return None
 
 def getParams_run():
     ''' Gets parameters from the command line and executes each step of the script. '''
@@ -411,19 +377,19 @@ def getParams_run():
                     in AWS to support a static website.')
     parse.add_argument('-k','--key', help='AWS Access Key',required=True)
     parse.add_argument('-s','--secretkey',help='AWS Secret Access Key', required=True)
+    parse.add_argument('-p','--keypair',help='EC2 Key Pair', required=True)
     parse.add_argument('-r','--region',help='AWS Region', default='us-east-1', required=False)
     parse.add_argument('-i','--instancetype',help='EC2 Instance Type (e.g. t2.micro)', default='t2.micro', required=False)
     args = parse.parse_args()
 
     # 1. Select Key Pair to use for EC2 Instance
-    #   Continue to run the key pair function until a real key pair name is returned
-    ec2KeyPair = None
-    while(ec2KeyPair == None):
-        ec2KeyPair = key_pair(args.key, args.secretkey, args.region)
+    ec2KeyPair = key_pair(args.key, args.secretkey, args.region, args.keypair)
 
     # 2. Build the template
     if(ec2KeyPair != None):
         ec2Template = build_template(ec2KeyPair, args.instancetype)
+    else:
+        return
 
     # 3. Create the stack and store the web address
     http_address = create_stack(args.key, args.secretkey, args.region, ec2Template.to_json())
