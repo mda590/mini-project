@@ -5,16 +5,16 @@ This project is a demo of the creation of a web server, deployment of a single s
 The deployment is meant to be fully automated - a single line command can build, run, and test the environment.
 
 ## Prerequisites
-* You must have an AWS account to successfully execute this automated deployment.
-* You will need the Access Key and Secret Access Key for an IAM user with access to CloudFormation and EC2.
+* :cloud: You must have an AWS account to successfully execute this automated deployment.
+* :closed_lock_with_key: You will need the Access Key and Secret Access Key for an IAM user with access to CloudFormation and EC2.
     * Generally, the built-in AdministratorAccess policy will be sufficient for testing this script, however
     using the AdministratorAccess policy in a production environment should be avoided in favor of fine grained policies.
-* You will need an EC2 Key Pair created on your account which can be passed as a parameter.
+* :key: You will need an EC2 Key Pair created on your account which can be passed as a parameter.
 
 The script is written fully in Python utilizing Troposphere for the creation of the CloudFormation template,
 and the Boto3 Python SDK for AWS for deploying the infrastructure.
 
-The following Python packages are required:
+:snake: The following Python packages are required:
  * Troposphere (pip install troposphere)
  * Boto3 Python SDK (pip install boto3)
  * Botocore (installed as a part of Boto3)
@@ -42,7 +42,7 @@ Example script execution:
 python build_env.py -k <access-key> -s <secret-key> -p 'matt-ohio-key' -r 'us-east-2' -i 't2.micro'
 ```
 
-## Automation Phases
+## Automation Phases :runner:
 ### By executing the script, you will be kicking off the following 4 phases:
 1. Key Pair Validation
     * Validates that the key pair passed as a parameter exists in the account.
