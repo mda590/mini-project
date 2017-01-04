@@ -42,7 +42,7 @@ Example script execution:
 python build_env.py -k <access-key> -s <secret-key> -p 'matt-ohio-key' -r 'us-east-2' -i 't2.micro'
 ```
 
-## Automation Phases :runner:
+## Automation Phases
 ### By executing the script, you will be kicking off the following 4 phases:
 1. Key Pair Validation
     * Validates that the key pair passed as a parameter exists in the account.
